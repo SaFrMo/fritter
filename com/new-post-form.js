@@ -2,6 +2,7 @@
 
 const yo = require('yo-yo')
 const renderAvatar = require('./avatar')
+const renderMentions = require('./mentions')
 
 // exported api
 // =
@@ -20,6 +21,8 @@ module.exports = function renderNewPostForm () {
           onfocus=${onToggleNewPostForm}
           onblur=${onToggleNewPostForm}
           onkeyup=${onChangePostDraft}>${app.postDraftText}</textarea>
+
+        ${app.possibleMentions ? yo`<ul class="mention-wrap">${ renderMentions(rerender) }</ul>` : ''}
       </div>
 
       <div class="actions ${editingCls}">
@@ -34,6 +37,20 @@ module.exports = function renderNewPostForm () {
 
   function onChangePostDraft (e) {
     app.postDraftText = e.target.value
+
+    // does the draft contain an @?
+    const matchText = app.postDraftText.match(/@([^@]*)$/)
+    if( matchText && matchText[1].length ){
+      const searchText = matchText[1]
+      // does the text following the @ match any followed profile names?
+      const followed = app.currentUserProfile.follows
+      const matches = followed.filter(single => single.name.includes(searchText))
+      // save possible mentions
+      app.possibleMentions = matches
+    } else {
+      app.possibleMentions = null
+    }
+
     rerender()
   }
 
