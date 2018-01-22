@@ -21,10 +21,14 @@ function onMentionClicked(e, user){
   e.preventDefault()
 
   // Fill out the user's name
-  app.postDraftText = app.postDraftText.replace(/@[^@]*$/, `@${ user.name }`)
+  app.postDraftText = app.postDraftText.replace(/@[^@]*$/, `@${ user.name } `)
   app.possibleMentions = null
 
   // Save user to list of mentions
+  app.draftMentions.push({
+      name: user.name,
+      url: user.url
+  })
 
   // Refocus text entry
   document.querySelector('textarea').focus()

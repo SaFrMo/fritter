@@ -56,8 +56,15 @@ module.exports = function renderNewPostForm () {
 
   async function onSubmitPost (e) {
     e.preventDefault()
-    await app.libfritter.feed.post(app.currentUser, {text: app.postDraftText})
+    const payload = {
+      text: app.postDraftText
+    }
+    if( app.draftMentions ){
+      payload.mentions = app.draftMentions
+    }
+    await app.libfritter.feed.post(app.currentUser, payload)
     app.postDraftText = ''
+    app.mentions = []
     app.posts = await app.loadFeedPosts()
     app.render()
   }
