@@ -4,6 +4,20 @@
   .new-post-form {
     background: var(--theme-color-faded);
     padding: 15px;
+
+    .possible-mentions {
+      position: absolute;
+      top: 65px;
+      overflow-y: auto;
+      height: 45px;
+      margin: 0 0 0 40px;
+      padding: 0;
+      width: 200px;
+
+      li {
+        border-bottom: 1px solid var(--theme-color-box-shadow);
+      }
+    }
   }
 
   .new-post-form {
@@ -11,6 +25,7 @@
     .inputs {
       display: flex;
       flex-wrap: nowrap;
+      position: relative;
     }
 
     .char-count {
