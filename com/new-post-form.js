@@ -60,7 +60,7 @@ module.exports = function renderNewPostForm () {
       const searchText = matchText[1]
       // does the text following the @ match any followed profile names?
       const followed = app.currentUserProfile.follows
-      const matches = followed.filter(single => single.name.includes(searchText))
+      const matches = followed.filter(single => single.name.toLowerCase().includes(searchText.toLowerCase()))
       // save possible mentions
       app.possibleMentions = matches
     } else {
@@ -75,7 +75,10 @@ module.exports = function renderNewPostForm () {
 
     // find and wrap all mentions
     app.draftMentions.map(mention => {
-      html = html.replace(`${mention.name}`, `<span class="mention" contenteditable="false">${mention.name}</span>`)
+      html = html.replace(new RegExp(`@${mention.name}X?`), `
+          <span class="mention" contenteditable="false">
+            <span class="hidden">@</span><span class="name">${mention.name}</span><span class="cancel">X</span>
+          </span>`)
     })
 
     const container = document.createElement('span')

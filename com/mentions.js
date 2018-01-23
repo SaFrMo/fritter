@@ -23,7 +23,7 @@ function onMentionClicked(e, user){
   e.preventDefault()
 
   // Fill out the user's name
-  app.postDraftText = app.postDraftText.replace(/@[^@]*$/, `${user.name}`)
+  app.postDraftText = app.postDraftText.replace(/@[^@]*$/, `@${user.name}`)
   //document.getElementById('composer').innerHTML = yo`<span data-url="${user.url}" data-name="${user.name}">${user.name}</span>`
   // app.postDraft.push({ type: 'mention', user })
   // app.postDraft.push('')

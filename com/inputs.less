@@ -74,12 +74,25 @@ textarea,
   }
 
   .mention {
-    background-color: var(--theme-color);
-    color: white;
-    padding: 5px;
-    border-radius: 4px;
     display: inline-block;
-    margin-bottom: 4px;
+    margin-bottom: 15px;
+
+    span {
+      padding: 5px;
+    }
+    .hidden {
+      display: none;
+    }
+    .name {
+      background-color: var(--theme-color);
+      color: white;
+      border-radius: 4px 0 0 4px;
+    }
+    .cancel {
+      background-color: var(--theme-color-box-shadow);
+      color: black;
+      border-radius: 0 4px 4px 0;
+    }
   }
 }
 
