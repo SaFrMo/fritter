@@ -4,7 +4,9 @@ const yo = require('yo-yo')
 
 module.exports = function renderMentions(rerender){
   return yo`
-      ${app.possibleMentions.map(renderMention)}
+      <ul class="possible-mentions">
+        ${app.possibleMentions.map(renderMention)}
+      </ul>
   `
 }
 
@@ -21,8 +23,11 @@ function onMentionClicked(e, user){
   e.preventDefault()
 
   // Fill out the user's name
-  app.postDraftText = app.postDraftText.replace(/@[^@]*$/, `@${ user.name } `)
-  app.possibleMentions = null
+  app.postDraftText = app.postDraftText.replace(/@[^@]*$/, `${user.name}`)
+  //document.getElementById('composer').innerHTML = yo`<span data-url="${user.url}" data-name="${user.name}">${user.name}</span>`
+  // app.postDraft.push({ type: 'mention', user })
+  // app.postDraft.push('')
+  app.possibleMentions = []
 
   // Save user to list of mentions
   app.draftMentions.push({
@@ -30,6 +35,8 @@ function onMentionClicked(e, user){
       url: user.url
   })
 
+  app.render()
+
   // Refocus text entry
-  document.querySelector('textarea').focus()
+  document.querySelector('.composer').focus()
 }

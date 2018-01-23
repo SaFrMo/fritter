@@ -8,7 +8,7 @@ const renderMentions = require('./mentions')
 // =
 
 module.exports = function renderNewPostForm () {
-  const isEditingPost = app.isEditingPost || app.postDraftText.length
+  const isEditingPost = app.isEditingPost || app.postDraft.length
   var editingCls = isEditingPost ? 'editing' : ''
   return yo`
     <form class="new-post-form ${editingCls}" onsubmit=${onSubmitPost}>
@@ -17,17 +17,28 @@ module.exports = function renderNewPostForm () {
 
         <textarea
           placeholder="Write a post"
-          style="border-color: ${app.getAppColor('border')}; height: ${isEditingPost ? '60px' : '35px'};"
+          style="display:none; border-color: ${app.getAppColor('border')}; height: ${isEditingPost ? '60px' : '35px'};"
           onfocus=${onToggleNewPostForm}
           onblur=${onToggleNewPostForm}
-          onkeyup=${onChangePostDraft}>${app.postDraftText}</textarea>
+          onkeyup=${onChangePostDraft}>${app.postDraft}</textarea>
 
-        ${app.possibleMentions ? yo`<ul class="mention-wrap">${ renderMentions(rerender) }</ul>` : ''}
+        <div
+          id="composer"
+          class="composer"
+          style="border-color: ${app.getAppColor('border')}; height: ${isEditingPost ? '60px' : '35px'};"
+          contenteditable="true"
+          onkeyup=${onChangePostDraft}>
+
+          ${renderPostDraft()}
+
+        </div>
+
+        <ul class="possible-mentions"></ul>
       </div>
 
       <div class="actions ${editingCls}">
-        <span class="char-count">${app.postDraftText.length || ''}</span>
-        ${isEditingPost ? yo`<button disabled=${!app.postDraftText.length} class="btn new-post" type="submit">Submit post</button>` : ''}
+        <span class="char-count">${app.postDraft.length || ''}</span>
+        ${isEditingPost ? yo`<button disabled=${!app.postDraft.length} class="btn new-post" type="submit">Submit post</button>` : ''}
       </div>
     </form>`
 
@@ -36,7 +47,12 @@ module.exports = function renderNewPostForm () {
   }
 
   function onChangePostDraft (e) {
-    app.postDraftText = e.target.value
+
+    const composer = document.getElementById('composer')
+    app.postDraftText = e.target.textContent.trim()
+    // const currentInput = document.querySelector('.composer .text:focus')
+    // const inputIndex = [...document.getElementById('composer').children].indexOf(currentInput)
+    // app.postDraft[inputIndex] = e.target.textContent
 
     // does the draft contain an @?
     const matchText = app.postDraftText.match(/@([^@]*)$/)
@@ -48,14 +64,29 @@ module.exports = function renderNewPostForm () {
       // save possible mentions
       app.possibleMentions = matches
     } else {
-      app.possibleMentions = null
+      app.possibleMentions = []
     }
 
-    rerender()
+    yo.update(document.querySelector('.possible-mentions'), renderMentions())
+  }
+
+  function renderPostDraft () {
+    let html = app.postDraftText
+
+    // find and wrap all mentions
+    app.draftMentions.map(mention => {
+      html = html.replace(`${mention.name}`, `<span class="mention" contenteditable="false">${mention.name}</span>`)
+    })
+
+    const container = document.createElement('span')
+    container.innerHTML = html
+
+    return yo`${container}`
   }
 
   async function onSubmitPost (e) {
     e.preventDefault()
+
     const payload = {
       text: app.postDraftText
     }
@@ -63,7 +94,7 @@ module.exports = function renderNewPostForm () {
       payload.mentions = app.draftMentions
     }
     await app.libfritter.feed.post(app.currentUser, payload)
-    app.postDraftText = ''
+    app.postDraft = ['']
     app.mentions = []
     app.posts = await app.loadFeedPosts()
     app.render()
