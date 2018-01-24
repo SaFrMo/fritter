@@ -33,10 +33,10 @@ module.exports = function renderNewPostForm () {
 
         </div>
 
-        <ul class="possible-mentions"></ul>
       </div>
 
       <div class="actions ${editingCls}">
+        <ul class="possible-mentions"></ul>
         <span class="char-count">${app.postDraft.length || ''}</span>
         ${isEditingPost ? yo`<button disabled=${!app.postDraft.length} class="btn new-post" type="submit">Submit post</button>` : ''}
       </div>
