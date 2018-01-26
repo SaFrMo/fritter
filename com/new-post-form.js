@@ -75,10 +75,10 @@ module.exports = function renderNewPostForm () {
 
     // find and wrap all mentions
     app.draftMentions.map(mention => {
-      html = html.replace(new RegExp(`@${mention.name}X?`), `
-          <span class="mention" contenteditable="false">
-            <span class="hidden">@</span><span class="name">${mention.name}</span><span class="cancel">X</span>
-          </span>`)
+      html = html.replace(new RegExp(`@${mention.name}`),
+        `<span class="mention" contenteditable="false">` +
+          `<span class="hidden">@</span><span class="name">${mention.name}</span>` +
+        `</span>`)
     })
 
     const container = document.createElement('span')
@@ -94,10 +94,19 @@ module.exports = function renderNewPostForm () {
       text: app.postDraftText
     }
     if( app.draftMentions ){
-      payload.mentions = app.draftMentions
+      // Remove duplicates
+      const uniqueMentions = app.draftMentions.filter((mention, i) => {
+        return app.draftMentions.findIndex(x => x.name == mention.name) != i
+      })
+      // Filter out unused mentions
+      const filteredMentions = uniqueMentions.filter(mention => payload.text.includes(`@${ mention.name }`))
+
+      if( filteredMentions.length ){
+        payload.mentions = filteredMentions
+      }
     }
     await app.libfritter.feed.post(app.currentUser, payload)
-    app.postDraft = ['']
+    app.postDraftText = ''
     app.mentions = []
     app.posts = await app.loadFeedPosts()
     app.render()

@@ -2,7 +2,7 @@
 
 const yo = require('yo-yo')
 
-module.exports = function renderMentions(rerender){
+module.exports = function renderMentions( rerender ){
   return yo`
       <ul class="possible-mentions">
         ${app.possibleMentions.map(renderMention)}
@@ -18,15 +18,12 @@ function renderMention(user){
   `
 }
 
-function onMentionClicked(e, user){
+function onMentionClicked( e, user ){
   e.stopPropagation()
   e.preventDefault()
 
   // Fill out the user's name
   app.postDraftText = app.postDraftText.replace(/@[^@]*$/, `@${user.name}`)
-  //document.getElementById('composer').innerHTML = yo`<span data-url="${user.url}" data-name="${user.name}">${user.name}</span>`
-  // app.postDraft.push({ type: 'mention', user })
-  // app.postDraft.push('')
   app.possibleMentions = []
 
   // Save user to list of mentions
@@ -38,5 +35,15 @@ function onMentionClicked(e, user){
   app.render()
 
   // Refocus text entry
-  document.querySelector('.composer').focus()
+  setEndOfContenteditable(document.querySelector('.composer'))
+}
+
+function setEndOfContenteditable( contentEditableElement ){
+  var range,selection
+  range = document.createRange()
+  range.selectNodeContents(contentEditableElement)
+  range.collapse(false)
+  selection = window.getSelection()
+  selection.removeAllRanges()
+  selection.addRange(range)
 }
