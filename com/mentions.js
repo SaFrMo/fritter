@@ -2,7 +2,7 @@
 
 const yo = require('yo-yo')
 
-module.exports = function renderMentions( rerender ){
+module.exports = function renderMentions (rerender) {
   return yo`
       <ul class="possible-mentions">
         ${app.possibleMentions.map(renderMention)}
@@ -10,7 +10,7 @@ module.exports = function renderMentions( rerender ){
   `
 }
 
-function renderMention(user){
+function renderMention (user) {
   return yo`
     <li>
       <button onclick="${e => onMentionClicked(e, user)}">${user.name}</span>
@@ -18,7 +18,7 @@ function renderMention(user){
   `
 }
 
-function onMentionClicked( e, user ){
+function onMentionClicked (e, user) {
   e.stopPropagation()
   e.preventDefault()
 
@@ -38,7 +38,7 @@ function onMentionClicked( e, user ){
   setEndOfContenteditable(document.querySelector('.composer'))
 }
 
-function setEndOfContenteditable( contentEditableElement ){
+function setEndOfContenteditable (contentEditableElement) {
   var range,selection
   range = document.createRange()
   range.selectNodeContents(contentEditableElement)

@@ -8,19 +8,12 @@ const renderMentions = require('./mentions')
 // =
 
 module.exports = function renderNewPostForm () {
-  const isEditingPost = app.isEditingPost || app.postDraft.length
+  const isEditingPost = app.isEditingPost
   var editingCls = isEditingPost ? 'editing' : ''
   return yo`
     <form class="new-post-form ${editingCls}" onsubmit=${onSubmitPost}>
       <div class="inputs">
         ${renderAvatar(app.currentUserProfile, 'small')}
-
-        <textarea
-          placeholder="Write a post"
-          style="display:none; border-color: ${app.getAppColor('border')}; height: ${isEditingPost ? '60px' : '35px'};"
-          onfocus=${onToggleNewPostForm}
-          onblur=${onToggleNewPostForm}
-          onkeyup=${onChangePostDraft}>${app.postDraft}</textarea>
 
         <div
           id="composer"
@@ -36,9 +29,11 @@ module.exports = function renderNewPostForm () {
       </div>
 
       <div class="actions ${editingCls}">
+
         <ul class="possible-mentions"></ul>
-        <span class="char-count">${app.postDraft.length || ''}</span>
-        ${isEditingPost ? yo`<button disabled=${!app.postDraft.length} class="btn new-post" type="submit">Submit post</button>` : ''}
+
+        <span class="char-count">${app.postDraftText.length || ''}</span>
+        ${isEditingPost ? yo`<button disabled=${!app.postDraftText.length} class="btn new-post" type="submit">Submit post</button>` : ''}
       </div>
     </form>`
 
@@ -90,7 +85,7 @@ module.exports = function renderNewPostForm () {
     const payload = {
       text: app.postDraftText
     }
-    if( app.draftMentions ){
+    if (app.draftMentions) {
       // Remove duplicates
       const uniqueMentions = []
       app.draftMentions.map((mention, i) => {
@@ -101,14 +96,18 @@ module.exports = function renderNewPostForm () {
       // Filter out unused mentions
       const filteredMentions = uniqueMentions.filter(mention => payload.text.includes(`@${ mention.name }`))
 
-      if( filteredMentions.length ){
+      if (filteredMentions.length) {
         payload.mentions = filteredMentions
       }
     }
 
     await app.libfritter.feed.post(app.currentUser, payload)
+
+    // reset draft
     app.postDraftText = ''
     app.mentions = []
+
+    // go to feed
     app.posts = await app.loadFeedPosts()
     app.render()
   }
