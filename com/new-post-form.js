@@ -50,9 +50,6 @@ module.exports = function renderNewPostForm () {
 
     const composer = document.getElementById('composer')
     app.postDraftText = e.target.textContent.trim()
-    // const currentInput = document.querySelector('.composer .text:focus')
-    // const inputIndex = [...document.getElementById('composer').children].indexOf(currentInput)
-    // app.postDraft[inputIndex] = e.target.textContent
 
     // does the draft contain an @?
     const matchText = app.postDraftText.match(/@([^@]*)$/)
@@ -95,8 +92,11 @@ module.exports = function renderNewPostForm () {
     }
     if( app.draftMentions ){
       // Remove duplicates
-      const uniqueMentions = app.draftMentions.filter((mention, i) => {
-        return app.draftMentions.findIndex(x => x.name == mention.name) != i
+      const uniqueMentions = []
+      app.draftMentions.map((mention, i) => {
+        if (!uniqueMentions.find(x => x.url == mention.url)){
+          uniqueMentions.push(mention)
+        }
       })
       // Filter out unused mentions
       const filteredMentions = uniqueMentions.filter(mention => payload.text.includes(`@${ mention.name }`))
@@ -105,6 +105,7 @@ module.exports = function renderNewPostForm () {
         payload.mentions = filteredMentions
       }
     }
+
     await app.libfritter.feed.post(app.currentUser, payload)
     app.postDraftText = ''
     app.mentions = []
