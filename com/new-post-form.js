@@ -8,7 +8,7 @@ const renderMentions = require('./mentions')
 // =
 
 module.exports = function renderNewPostForm () {
-  const isEditingPost = app.isEditingPost
+  const isEditingPost = true //app.isEditingPost
   var editingCls = isEditingPost ? 'editing' : ''
   return yo`
     <form class="new-post-form ${editingCls}" onsubmit=${onSubmitPost}>
@@ -20,11 +20,7 @@ module.exports = function renderNewPostForm () {
           class="composer"
           style="border-color: ${app.getAppColor('border')}; height: ${isEditingPost ? '60px' : '35px'};"
           contenteditable="true"
-          onkeyup=${onChangePostDraft}>
-
-          ${renderPostDraft()}
-
-        </div>
+          onkeyup=${onChangePostDraft}>${renderPostDraft()}</div>
 
       </div>
 
@@ -44,7 +40,7 @@ module.exports = function renderNewPostForm () {
   function onChangePostDraft (e) {
 
     const composer = document.getElementById('composer')
-    app.postDraftText = e.target.textContent.trim()
+    app.postDraftText = e.target.textContent
 
     // does the draft contain an @?
     const matchText = app.postDraftText.match(/@([^@]*)$/)
@@ -60,6 +56,7 @@ module.exports = function renderNewPostForm () {
     }
 
     yo.update(document.querySelector('.possible-mentions'), renderMentions())
+    yo.update(document.querySelector('.char-count'), yo`<span class="char-count">${ e.target.textContent.length }</span>`)
   }
 
   function renderPostDraft () {
