@@ -9,31 +9,34 @@ const {buildPost} = require('../lib/util')
 // =
 
 module.exports = function renderNewPostForm (opts = {}) {
+
+  // default functions if not specified
   const onSubmit = opts.onSubmit || onSubmitPost
   const onKeyUp = opts.onKeyUp || onChangePostDraft
+
+  // default source if not specified
   const source = opts.source || 'postDraftText'
-  const isEditingPost = true //app.isEditingPost
-  var editingCls = isEditingPost ? 'editing' : ''
+
   return yo`
-    <form class="new-post-form ${editingCls}" onsubmit=${onSubmit}>
+    <form class="new-post-form editing" onsubmit=${onSubmit}>
       <div class="inputs">
         ${renderAvatar(app.currentUserProfile, 'small')}
 
         <div
           id="composer"
           class="composer"
-          style="border-color: ${app.getAppColor('border')}; height: ${isEditingPost ? '60px' : '35px'};"
+          style="border-color: ${app.getAppColor('border')}; height: 60px;"
           contenteditable="true"
           onkeyup=${onKeyUp}>${renderPostDraft()}</div>
 
       </div>
 
-      <div class="actions ${editingCls}">
+      <div class="actions editing">
 
         <ul class="possible-mentions"></ul>
 
-        <span class="char-count">${source.length || ''}</span>
-        ${isEditingPost ? yo`<button disabled=${!source.length} class="btn new-post" type="submit">Submit post</button>` : ''}
+        <span class="char-count">${app[source].length || ''}</span>
+        <button disabled=${!app[source].length} class="btn new-post" type="submit">Submit post</button>
       </div>
     </form>`
 
@@ -71,7 +74,7 @@ module.exports = function renderNewPostForm (opts = {}) {
       html = html.replace(new RegExp(`@${mention.name}`),
         `<span class="mention" contenteditable="false">` +
           `<span class="hidden">@</span><span class="name">${mention.name}</span>` +
-        `</span> `)
+        `</span>&nbsp;`)
     })
 
     const container = document.createElement('span')

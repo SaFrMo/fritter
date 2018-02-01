@@ -62,13 +62,13 @@ module.exports = function renderThread () {
       threadRoot: app.viewedPost.threadRoot || app.viewedPost.getRecordURL(),
       threadParent: app.viewedPost.getRecordURL()
     })
-    
-    await app.libfritter.feed.post(app.currentUser, post)
+
+    const newPost = await app.libfritter.feed.post(app.currentUser, post)
     app.replyDraftText = ''
     app.isEditingReply = false
 
     // reload the post
-    app.viewedPost = await app.libfritter.feed.getThread(app.viewedPost.getRecordURL())
+    app.viewedPost = await app.libfritter.feed.getThread(newPost)
     app.render()
   }
 
@@ -117,17 +117,4 @@ function renderReplies (p) {
       <div class="replies">${replies}</div>
     </div>
   `
-
-  const oldWay = `<form class="reply-form ${editingCls}" onsubmit=${onSubmitReply}>
-    ${renderAvatar(app.currentUserProfile)}
-    <textarea
-      placeholder="Write a reply"
-      style="border-color: ${app.getAppColor('border')}"
-      onfocus=${onToggleIsReplying}
-      onblur=${onToggleIsReplying}
-      onkeyup=${onChangeReplyDraft}>${app.replyDraftText}</textarea>
-    <div class="actions ${editingCls}">
-      ${app.isEditingReply ? yo`<button disabled=${!app.replyDraftText} class="btn new-reply" type="submit">Reply</button>` : ''}
-    </div>
-  </form>`
 }
