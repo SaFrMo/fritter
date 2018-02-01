@@ -7,7 +7,8 @@ const renderFollowButton = require('./follow-btn')
 const renderPostActions = require('./post-actions')
 const renderPostVotesPreview = require('./post-votes-preview')
 const renderReply = require('./post-reply')
-const {linkifyText, timestamp} = require('../lib/util')
+const renderNewPostForm = require('./new-post-form')
+const {linkifyText, timestamp, buildPost} = require('../lib/util')
 
 // exported api
 // =
@@ -47,18 +48,7 @@ module.exports = function renderThread () {
         ${renderPostActions(viewedPost)}
       </div>
 
-      <form class="reply-form ${editingCls}" onsubmit=${onSubmitReply}>
-        ${renderAvatar(app.currentUserProfile)}
-        <textarea
-          placeholder="Write a reply"
-          style="border-color: ${app.getAppColor('border')}"
-          onfocus=${onToggleIsReplying}
-          onblur=${onToggleIsReplying}
-          onkeyup=${onChangeReplyDraft}>${app.replyDraftText}</textarea>
-        <div class="actions ${editingCls}">
-          ${app.isEditingReply ? yo`<button disabled=${!app.replyDraftText} class="btn new-reply" type="submit">Reply</button>` : ''}
-        </div>
-      </form>
+      ${renderNewPostForm({ onSubmit: onSubmitReply, source: 'replyDraftText' })}
 
       ${renderReplies(viewedPost)}
     </div>
@@ -66,11 +56,14 @@ module.exports = function renderThread () {
 
   async function onSubmitReply (e) {
     e.preventDefault()
-    await app.libfritter.feed.post(app.currentUser, {
+
+    const post = buildPost({
       text: app.replyDraftText,
       threadRoot: app.viewedPost.threadRoot || app.viewedPost.getRecordURL(),
       threadParent: app.viewedPost.getRecordURL()
     })
+    
+    await app.libfritter.feed.post(app.currentUser, post)
     app.replyDraftText = ''
     app.isEditingReply = false
 
@@ -124,4 +117,17 @@ function renderReplies (p) {
       <div class="replies">${replies}</div>
     </div>
   `
+
+  const oldWay = `<form class="reply-form ${editingCls}" onsubmit=${onSubmitReply}>
+    ${renderAvatar(app.currentUserProfile)}
+    <textarea
+      placeholder="Write a reply"
+      style="border-color: ${app.getAppColor('border')}"
+      onfocus=${onToggleIsReplying}
+      onblur=${onToggleIsReplying}
+      onkeyup=${onChangeReplyDraft}>${app.replyDraftText}</textarea>
+    <div class="actions ${editingCls}">
+      ${app.isEditingReply ? yo`<button disabled=${!app.replyDraftText} class="btn new-reply" type="submit">Reply</button>` : ''}
+    </div>
+  </form>`
 }

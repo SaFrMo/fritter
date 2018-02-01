@@ -3,15 +3,19 @@
 const yo = require('yo-yo')
 const renderAvatar = require('./avatar')
 const renderMentions = require('./mentions')
+const {buildPost} = require('../lib/util')
 
 // exported api
 // =
 
-module.exports = function renderNewPostForm () {
+module.exports = function renderNewPostForm (opts = {}) {
+  const onSubmit = opts.onSubmit || onSubmitPost
+  const onKeyUp = opts.onKeyUp || onChangePostDraft
+  const source = opts.source || 'postDraftText'
   const isEditingPost = true //app.isEditingPost
   var editingCls = isEditingPost ? 'editing' : ''
   return yo`
-    <form class="new-post-form ${editingCls}" onsubmit=${onSubmitPost}>
+    <form class="new-post-form ${editingCls}" onsubmit=${onSubmit}>
       <div class="inputs">
         ${renderAvatar(app.currentUserProfile, 'small')}
 
@@ -20,7 +24,7 @@ module.exports = function renderNewPostForm () {
           class="composer"
           style="border-color: ${app.getAppColor('border')}; height: ${isEditingPost ? '60px' : '35px'};"
           contenteditable="true"
-          onkeyup=${onChangePostDraft}>${renderPostDraft()}</div>
+          onkeyup=${onKeyUp}>${renderPostDraft()}</div>
 
       </div>
 
@@ -28,8 +32,8 @@ module.exports = function renderNewPostForm () {
 
         <ul class="possible-mentions"></ul>
 
-        <span class="char-count">${app.postDraftText.length || ''}</span>
-        ${isEditingPost ? yo`<button disabled=${!app.postDraftText.length} class="btn new-post" type="submit">Submit post</button>` : ''}
+        <span class="char-count">${source.length || ''}</span>
+        ${isEditingPost ? yo`<button disabled=${!source.length} class="btn new-post" type="submit">Submit post</button>` : ''}
       </div>
     </form>`
 
@@ -40,10 +44,10 @@ module.exports = function renderNewPostForm () {
   function onChangePostDraft (e) {
 
     const composer = document.getElementById('composer')
-    app.postDraftText = e.target.textContent
+    app[source] = e.target.textContent
 
     // does the draft contain an @?
-    const matchText = app.postDraftText.match(/@([^@]*)$/)
+    const matchText = app[source].match(/@([^@]*)$/)
     if( matchText && matchText[1].length ){
       const searchText = matchText[1]
       // does the text following the @ match any followed profile names?
@@ -55,19 +59,19 @@ module.exports = function renderNewPostForm () {
       app.possibleMentions = []
     }
 
-    yo.update(document.querySelector('.possible-mentions'), renderMentions())
+    yo.update(document.querySelector('.possible-mentions'), renderMentions(source))
     yo.update(document.querySelector('.char-count'), yo`<span class="char-count">${ e.target.textContent.length }</span>`)
   }
 
   function renderPostDraft () {
-    let html = app.postDraftText
+    let html = app[source]
 
     // find and wrap all mentions
     app.draftMentions.map(mention => {
       html = html.replace(new RegExp(`@${mention.name}`),
         `<span class="mention" contenteditable="false">` +
           `<span class="hidden">@</span><span class="name">${mention.name}</span>` +
-        `</span>`)
+        `</span> `)
     })
 
     const container = document.createElement('span')
@@ -79,29 +83,10 @@ module.exports = function renderNewPostForm () {
   async function onSubmitPost (e) {
     e.preventDefault()
 
-    const payload = {
-      text: app.postDraftText
-    }
-    if (app.draftMentions) {
-      // Remove duplicates
-      const uniqueMentions = []
-      app.draftMentions.map((mention, i) => {
-        if (!uniqueMentions.find(x => x.url == mention.url)){
-          uniqueMentions.push(mention)
-        }
-      })
-      // Filter out unused mentions
-      const filteredMentions = uniqueMentions.filter(mention => payload.text.includes(`@${ mention.name }`))
-
-      if (filteredMentions.length) {
-        payload.mentions = filteredMentions
-      }
-    }
-
-    await app.libfritter.feed.post(app.currentUser, payload)
+    await app.libfritter.feed.post(app.currentUser, buildPost({ text: app[source] }))
 
     // reset draft
-    app.postDraftText = ''
+    app[source] = ''
     app.mentions = []
 
     // go to feed
